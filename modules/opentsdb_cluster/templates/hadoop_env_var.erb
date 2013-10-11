@@ -1,0 +1,8 @@
+export HADOOP_HOME=<%= scope.lookupvar('::opentsdb_cluster::hadoop_working_dir') %>
+export JAVA_HOME=<%= scope.lookupvar('::opentsdb_cluster::java_home') %>
+export HBASE_HOME=<%= scope.lookupvar('::opentsdb_cluster::hbase_working_dir') %>
+unalias fs &> /dev/null
+alias fs="hadoop fs" 
+unalias hls &> /dev/null
+alias hls="fs -ls" 
+export PATH=$PATH:$HADOOP_HOME/bin:$HBASE_HOME/bin

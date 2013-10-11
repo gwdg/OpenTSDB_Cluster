@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+  	<name>hbase.cluster.distributed</name>
+  	<value>true</value>
+  </property>
+  <property>
+  	<name>hbase.rootdir</name>
+  	<value>hdfs://<%= scope.lookupvar('::opentsdb_cluster::puppet_hostname') %>:54310/hbase</value>
+  	<description>The directory shared by RegionServers.
+ 	</description></property>
+  <property>
+  	<name>dfs.replication</name>
+  	<value>2</value>
+  	<description>The replication count for HLog and HFile storage. Should not be greater than HDFS datanode count. </description>
+  </property>
+  <property>
+  	<name>hbase.zookeeper.property.clientPort</name>
+  	<value>2181</value>
+  	<description>Property from ZooKeeper's config zoo.cfg.
+ The port at which the clients will connect.
+ 	</description>
+  </property>
+  <property>
+  	<name>hbase.zookeeper.quorum</name>
+  	<value><%= scope.lookupvar('::opentsdb_cluster::puppet_hostname') %>,<%= scope.lookupvar('::opentsdb_cluster::slave_hostname') %></value>
+  	<description>Comma separated list of servers in the ZooKeeper Quorum.
+ For example, "host1.mydomain.com,host2.mydomain.com,host3.mydomain.com".
+ By default this is set to localhost for local and pseudo-distributed modes
+ of operation. For a fully-distributed setup, this should be set to a full
+ list of ZooKeeper quorum servers. If HBASE_MANAGES_ZK is set in hbase-env.sh
+ this is the list of servers which we will start/stop ZooKeeper on.
+ </description>
+ </property>
+ <property>
+ 	<name>hbase.<%= scope.lookupvar('::opentsdb_cluster::puppet_hostname') %>.port</name>
+ 	<value>60000</value>
+ </property>
+ <property>
+ 	<name>hbase.zookeeper.property.dataDir</name>
+ 	<value>/home/<%= scope.lookupvar('::opentsdb_cluster::myuser_name') %>/zookeeperdata</value>
+ 	<description>Property from ZooKeeper’s config zoo.cfg.
+ The directory where the snapshot is stored.
+ 	</description>
+ 	</property>
+</configuration>
