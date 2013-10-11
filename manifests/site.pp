@@ -4,8 +4,8 @@ node "masterdb" {
 #  include prepare_puppetdb
   
   class {'opentsdb_cluster':
-    install_hadoop     => true,
-    install_hbase      => true,
+#    install_hadoop     => true,
+#    install_hbase      => true,
 #    install_opentsdb   => true,
 #    install_tcollector => true,
     setup_user         => true, 
@@ -22,8 +22,8 @@ node "slavedb" {
 #  File_line <<| tag == "gwdg" |>>
 
   class {'opentsdb_cluster':
-   install_hadoop     => true,
-    install_hbase      => true,
+#   install_hadoop     => true,
+#    install_hbase      => true,
 #    install_opentsdb   => false,
 #    install_tcollector => false,
 #    setup_lzo          => true, 

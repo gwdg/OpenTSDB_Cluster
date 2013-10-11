@@ -95,12 +95,12 @@ class opentsdb_cluster::hbase::service{
     owner   => $opentsdb_cluster::myuser_name,
     group   => $opentsdb_cluster::mygroup_name,
     require  => File["reown_hbase"],
-#    notify  => Service["hbase"],
+    notify  => Service["hbase"],
   }
-#  service{"hbase":
-#    ensure  => running,
-#    require => [File["hbase_service"],Service["hadoop"], File["/var/log/hbase/startup_log"]],
-#  }
+  service{"hbase":
+    ensure  => running,
+    require => [File["hbase_service"],Service["hadoop"], File["/var/log/hbase/startup_log"]],
+  }
   file{"/var/log/hbase":
     ensure  => directory,
     owner   => $opentsdb_cluster::myuser_name,

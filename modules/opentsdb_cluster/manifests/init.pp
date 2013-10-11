@@ -2,6 +2,7 @@ class opentsdb_cluster (
   $puppet_hostname         = "masterdb",
   $slave_hostname          = "slavedb",
   $slave_ip                = "192.168.33.65",
+  $puppet_ip               = "192.168.33.60", 
   $myuser_name             = "gwdg",
   $myuser_id               = "1010",
   $myuser_passwd           = '\$6\$aqzOtgCM\$OxgoMP4JoqMJ1U1F3MZPo2iBefDRnRCXSfgIM36E5cfMNcE7GcNtH1P/tTC2QY3sX3BxxJ7r/9ciScIVTa55l0',
@@ -68,7 +69,7 @@ class opentsdb_cluster (
     include opentsdb_cluster::hadoop
 
     if $::hostname == $puppet_hostname {
- #     include opentsdb_cluster::hadoop::format
+      include opentsdb_cluster::hadoop::format
       include opentsdb_cluster::hadoop::service
     }
   }

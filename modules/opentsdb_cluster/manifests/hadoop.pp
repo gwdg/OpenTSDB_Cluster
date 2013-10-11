@@ -126,7 +126,7 @@ class opentsdb_cluster::hadoop::copy_file {
   }
 
 }
-/*
+
 class opentsdb_cluster::hadoop::format {
   include opentsdb_cluster::virtual_user::ssh_conn
   include opentsdb_cluster::virtual_user::auth_file
@@ -156,7 +156,7 @@ class opentsdb_cluster::hadoop::format {
     require => Exec["format_hadoop"],
   }
 }
- */
+ 
 class opentsdb_cluster::hadoop::service {
   include opentsdb_cluster::virtual_user::ssh_conn
   include opentsdb_cluster::virtual_user::auth_file
@@ -169,13 +169,13 @@ class opentsdb_cluster::hadoop::service {
     group   => "${opentsdb_cluster::mygroup_name}",
     mode    => 777,
     require => File["reown_hadoop"],
- #   notify  => Service["hadoop"],
+    notify  => Service["hadoop"],
   }
-/*
+
   service { "hadoop":
     ensure  => running,
     require => [Exec["format_hadoop"], File["hadoop_service"], File["id_rsa"], File["id_rsa.pub"], File["authorized_keys"]],
   }
-   */
+   
 }
 
