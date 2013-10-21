@@ -3,6 +3,7 @@ Installation of OpenTSDB (opentsdb.net) with cluster of hbase machine.
 <h1> Preparation </h1>
 i.) One master machine in which puppet master, puppetdb installed.
 	Find and edit configuration file /etc/puppet/puppet.conf
+	
 	[main]
 	.
 	.
