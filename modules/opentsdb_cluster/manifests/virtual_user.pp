@@ -30,21 +30,30 @@ class opentsdb_cluster::virtual_user {
     ip     => '127.0.0.1',
     ensure => present,
   }
-  
-  file_line{"host":
-    path    => "/etc/hosts",
-    line    => "${::ipaddress_eth1}   ${::hostname}",
-    ensure  => present,
+  host{"own":
+    name  => $::fqdn,
+    host_aliases  => [$::hostname],
+    ip  => $::is_virtual?{
+      /true/    => $::ipaddress_eth1,
+      default   => $::ipaddress_eth0,
+    },
+    ensure      => present,
   }
+  
+#  file_line{"host":
+#    path    => "/etc/hosts",
+#    line    => "${::ipaddress_eth1}   ${::hostname}",
+#    ensure  => present,
+#  }
 
 
   if $::hostname == $opentsdb_cluster::puppet_hostname {
-    host { "other_slave":
-      name         => $opentsdb_cluster::slave_hostname,
-      host_aliases => ["${opentsdb_cluster::slave_hostname}.${::domain}"],
-      ip           => $opentsdb_cluster::slave_ip,
-      ensure       => present,
-    }
+#    host { "other_slave":
+#      name         => $opentsdb_cluster::slave_hostname,
+#      host_aliases => ["${opentsdb_cluster::slave_hostname}.${::domain}"],
+#      ip           => $opentsdb_cluster::slave_ip,
+#      ensure       => present,
+#    }
   } else {
     host { "master":
       name         => $opentsdb_cluster::puppet_hostname,
