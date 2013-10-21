@@ -24,7 +24,7 @@ Puppet::Type.newtype(:postgresql_psql) do
       # method, and then inside of the body of 'sync' we can tell
       # whether or not we're refreshing.
 
-      if ((@resource[:refreshonly] == :false) || refreshing)
+      if (!@resource.refreshonly? || refreshing)
         # If we're not in 'refreshonly' mode, or we're not currently
         # refreshing, then we just call the parent method.
         super()
@@ -66,12 +66,14 @@ Puppet::Type.newtype(:postgresql_psql) do
 
   newparam(:cwd, :parent => Puppet::Parameter::Path) do
     desc "The working directory under which the psql command should be executed."
+    defaultto("/tmp")
   end
 
-  newparam(:refreshonly) do
+  newparam(:refreshonly, :boolean => true) do
     desc "If 'true', then the SQL will only be executed via a notify/subscribe event."
 
     defaultto(:false)
+    newvalues(:true, :false)
   end
 
   def refresh()

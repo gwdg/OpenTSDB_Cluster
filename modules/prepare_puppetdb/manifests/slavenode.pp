@@ -3,7 +3,7 @@ class prepare_puppetdb::slavenode{
     path              => "/etc/puppet/puppet.conf",
     section           => "agent",
     setting           => "server",
-    value             => "masterdb",
+    value             => "${opentsdb_cluster::puppet_hostname}",
     key_val_separator => "=",
   }
 }

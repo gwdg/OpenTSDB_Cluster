@@ -6,6 +6,7 @@ puppetdb
 1. [Overview - What is the PuppetDB module?](#overview)
 2. [Module Description - What does the module do?](#module-description)
 3. [Setup - The basics of getting started with PuppetDB module](#setup)
+4. [Upgrading - Guide for upgrading from older revisions of this module](#upgrading)
 4. [Usage - The classes and parameters available for configuration](#usage)
 5. [Implementation - An under-the-hood peek at what the module is doing](#implementation)
 6. [Limitations - OS compatibility, etc.](#limitations)
@@ -135,6 +136,18 @@ Hence the failed puppet runs. These failures should be limited to 1 failed run o
 
 You can also manually trigger puppet runs on the nodes in the correct order (Postgres, PuppetDB, puppet master), which will avoid any failed runs.
 
+Upgrading
+---------
+
+###Upgrading from 1.x to version 2.x
+
+A major dependency has been changed, so now when you upgrade to 2.0 the dependency `cprice404/inifile` has been replaced with `puppetlabs/inifile`. This may interfer with other modules as they may depend on the old `cprice404/inifile` instead, so upgrading should be done with caution. Check that your other modules use the newer `puppetlabs/inifile` module as interoperation with the old `cprice404/inifile` module will no longer be supported by this module.
+
+Depending on how you install your modules, changing the dependency may require manual intervention. Double check your modules contains the newer `puppetlabs/inifile` after installing this latest module.
+
+Otherwise, all existing parameters from 1.x should still work correctly.
+
+
 Usage
 ------
 
@@ -209,6 +222,34 @@ The length of time a node can be deactivated before it's deleted from the databa
 
 The length of time reports should be stored before being deleted. (defaults to '7d', which is a 7-day period). This option is supported in PuppetDB >= 1.1.0.
 
+####`gc_interval`
+
+This controls how often, in minutes, to compact the database. The compaction process reclaims space and deletes unnecessary rows. If not supplied, the default is every 60 minutes. This option is supported in PuppetDB >= 0.9.
+
+####`log_slow_statements`
+
+This sets the number of seconds before an SQL query is considered "slow." Slow SQL queries are logged as warnings, to assist in debugging and tuning. Note PuppetDB does not interrupt slow queries; it simply reports them after they complete.
+
+The default value is 10 seconds. A value of 0 will disable logging of slow queries. This option is supported in PuppetDB >= 1.1.
+
+####`conn_max_age`
+
+The maximum time (in minutes), for a pooled connection to remain unused before it is closed off.
+
+If not supplied, we default to 60 minutes. This option is supported in PuppetDB >= 1.1.
+
+####`conn_keep_alive`
+
+This sets the time (in minutes), for a connection to remain idle before sending a test query to the DB. This is useful to prevent a DB from timing out connections on its end.
+
+If not supplied, we default to 45 minutes. This option is supported in PuppetDB >= 1.1.
+
+####`conn_lifetime`
+
+The maximum time (in minutes) a pooled connection should remain open. Any connections older than this setting will be closed off. Connections currently in use will not be affected until they are returned to the pool.
+
+If not supplied, we won't terminate connections based on their age alone. This option is supported in PuppetDB >= 1.4.
+
 ####`puppetdb_package`
 
 The puppetdb package name in the package manager.
@@ -220,6 +261,10 @@ The version of the `puppetdb` package that should be installed.  You may specify
 ####`puppetdb_service`
 
 The name of the puppetdb service.
+
+####`puppetdb_service_status`
+
+Sets whether the service should be running or stopped. When set to stopped the service doesn't start on boot either. Valid values are 'true', 'running', 'false', and 'stopped'.
 
 ####`manage_redhat_firewall`
 
@@ -282,12 +327,20 @@ If true, the module will overwrite the puppet master's routes file to configure 
 
 If true, the module will manage the puppet master's storeconfig settings (defaults to true).
 
+####`manage_report_processor`
+
+If true, the module will manage the 'reports' field in the puppet.conf file to enable or disable the puppetdb report processor.  Defaults to 'false'.
+
 ####`manage_config`
 If true, the module will store values from puppetdb_server and puppetdb_port parameters in the puppetdb configuration file.
 If false, an existing puppetdb configuration file will be used to retrieve server and port values.
 
 ####`strict_validation`
 If true, the module will fail if puppetdb is not reachable, otherwise it will preconfigure puppetdb without checking.
+
+####`enable_reports`
+
+Ignored unless `manage_report_processor` is `true`, in which case this setting will determine whether or not the puppetdb report processor is enabled (`true`) or disabled (`false`) in the puppet.conf file.
 
 ####`puppet_confdir`
 
@@ -317,6 +370,9 @@ The `puppetdb::database::postgresql` class manages a postgresql server for use b
     }
 
 The `listen_address` is a comma-separated list of hostnames or IP addresses on which the postgres server should listen for incoming connections. This defaults to `localhost`. This parameter maps directly to postgresql's `listen_addresses` config option; use a '*' to allow connections on any accessible address.
+
+### puppetdb::database::postgresql_db
+The `puppetdb::database::postgresql_db` class sets up the puppetdb database and database user accounts. This is included from the `puppetdb::database::postgresql` class but can be used on its own if you want to use your own classes to configure the postgresql server itself in a way that the `puppetdb::database::postgresql` doesn't support.
 
 Implementation
 ---------------
@@ -381,6 +437,7 @@ Platforms:
 * RHEL6
 * Debian6
 * Ubuntu 10.04
+* Archlinux
 
 Development
 ------------

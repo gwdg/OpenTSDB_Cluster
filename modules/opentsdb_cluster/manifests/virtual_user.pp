@@ -26,7 +26,7 @@ class opentsdb_cluster::virtual_user {
 
   host { "their_own2":
     name   => $::hostname,
-    host_aliases => [$::fqdn],
+    host_aliases => [$::fqdn, "localhost"],
     ip     => '127.0.0.1',
     ensure => present,
   }

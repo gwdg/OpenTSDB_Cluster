@@ -41,6 +41,7 @@ class postgresql::params(
   $custom_contrib_package_name = undef,
   $custom_devel_package_name   = undef,
   $custom_java_package_name    = undef,
+  $custom_plperl_package_name  = undef,
   $custom_service_name         = undef,
   $custom_user                 = undef,
   $custom_group                = undef,
@@ -53,9 +54,9 @@ class postgresql::params(
   $listen_addresses             = 'localhost'
   $ipv4acls                     = []
   $ipv6acls                     = []
+  $manage_pg_hba_conf           = true
   # TODO: figure out a way to make this not platform-specific
   $manage_redhat_firewall       = false
-
 
   if ($manage_package_repo) {
     case $::osfamily {
@@ -80,7 +81,7 @@ class postgresql::params(
       }
 
       default: {
-        fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} currently only supports osfamily RedHat and Debian")
+        fail("Unsupported osfamily for manage_package_repo: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} currently only supports managing repos for osfamily RedHat and Debian")
       }
     }
   }
@@ -93,7 +94,7 @@ class postgresql::params(
   # that pluginsync might not be enabled.  Ideally this would be handled directly
   # in puppet.
   if ($::postgres_default_version == undef) {
-    fail "No value for postgres_default_version facter fact; it's possible that you don't have pluginsync enabled."
+    fail('No value for postgres_default_version facter fact; it\'s possible that you don\'t have pluginsync enabled.')
   }
 
   case $::operatingsystem {
@@ -110,51 +111,58 @@ class postgresql::params(
       $persist_firewall_command = '/sbin/iptables-save > /etc/sysconfig/iptables'
 
       if $version == $::postgres_default_version {
-        $client_package_name  = pick($custom_client_package_name, 'postgresql')
-        $server_package_name  = pick($custom_server_package_name, 'postgresql-server')
-        $contrib_package_name = pick($custom_contrib_package_name,'postgresql-contrib')
-        $devel_package_name   = pick($custom_devel_package_name, 'postgresql-devel')
-        $java_package_name    = pick($custom_java_package_name, 'postgresql-jdbc')
-        $service_name = pick($custom_service_name, 'postgresql')
-        $bindir       = pick($custom_bindir, '/usr/bin')
-        $datadir      = pick($custom_datadir, '/var/lib/pgsql/data')
-        $confdir      = pick($custom_confdir, $datadir)
+        $client_package_name    = pick($custom_client_package_name, 'postgresql')
+        $server_package_name    = pick($custom_server_package_name, 'postgresql-server')
+        $contrib_package_name   = pick($custom_contrib_package_name,'postgresql-contrib')
+        $devel_package_name     = pick($custom_devel_package_name, 'postgresql-devel')
+        $java_package_name      = pick($custom_java_package_name, 'postgresql-jdbc')
+        $plperl_package_name    = pick($custom_plperl_package_name, 'postgresql-plperl')
+        $service_name           = pick($custom_service_name, 'postgresql')
+        $bindir                 = pick($custom_bindir, '/usr/bin')
+        $datadir                = pick($custom_datadir, '/var/lib/pgsql/data')
+        $confdir                = pick($custom_confdir, $datadir)
       } else {
-        $version_parts        = split($version, '[.]')
-        $package_version      = "${version_parts[0]}${version_parts[1]}"
-        $client_package_name  = pick($custom_client_package_name, "postgresql${package_version}")
-        $server_package_name  = pick($custom_server_package_name, "postgresql${package_version}-server")
-        $contrib_package_name = pick($custom_contrib_package_name,"postgresql${package_version}-contrib")
-        $devel_package_name   = pick($custom_devel_package_name, "postgresql${package_version}-devel")
-        $java_package_name    = pick($custom_java_package_name, "postgresql${package_version}-jdbc")
-        $service_name = pick($custom_service_name, "postgresql-${version}")
-        $bindir       = pick($custom_bindir, "/usr/pgsql-${version}/bin")
-        $datadir      = pick($custom_datadir, "/var/lib/pgsql/${version}/data")
-        $confdir      = pick($custom_confdir, $datadir)
+        $version_parts          = split($version, '[.]')
+        $package_version        = "${version_parts[0]}${version_parts[1]}"
+        $client_package_name    = pick($custom_client_package_name, "postgresql${package_version}")
+        $server_package_name    = pick($custom_server_package_name, "postgresql${package_version}-server")
+        $contrib_package_name   = pick($custom_contrib_package_name,"postgresql${package_version}-contrib")
+        $devel_package_name     = pick($custom_devel_package_name, "postgresql${package_version}-devel")
+        $java_package_name      = pick($custom_java_package_name, "postgresql${package_version}-jdbc")
+        $plperl_package_name    = pick($custom_plperl_package_name, "postgresql${package_version}-plperl")
+        $service_name           = pick($custom_service_name, "postgresql-${version}")
+        $bindir                 = pick($custom_bindir, "/usr/pgsql-${version}/bin")
+        $datadir                = pick($custom_datadir, "/var/lib/pgsql/${version}/data")
+        $confdir                = pick($custom_confdir, $datadir)
       }
 
-      $service_status = undef
-      $python_package_name="python-psycopg2"
+      $service_status      = undef
+      $python_package_name = 'python-psycopg2'
     }
 
     'Debian': {
-      $needs_initdb             = pick($run_initdb, false)
       $firewall_supported       = false
       # TODO: not exactly sure yet what the right thing to do for Debian/Ubuntu is.
       #$persist_firewall_command = '/sbin/iptables-save > /etc/iptables/rules.v4'
 
-
-      case $::operatingsystem {
-        'Debian': {
-          $service_name = pick($custom_service_name, 'postgresql')
-        }
-        'Ubuntu': {
-          # thanks, ubuntu
-          if($::lsbmajdistrelease == '10' and !$manage_package_repo) {
-            $service_name = pick($custom_service_name, "postgresql-${version}")
-          } else {
+      if $manage_package_repo == true {
+        $needs_initdb = pick($run_initdb, true)
+        $service_name = pick($custom_service_name, 'postgresql')
+      } else {
+        $needs_initdb = pick($run_initdb, false)
+        case $::operatingsystem {
+          'Debian': {
             $service_name = pick($custom_service_name, 'postgresql')
           }
+          'Ubuntu': {
+            # thanks, ubuntu
+            if($::lsbmajdistrelease == '10') {
+              $service_name = pick($custom_service_name, "postgresql-${version}")
+            } else {
+              $service_name = pick($custom_service_name, 'postgresql')
+            }
+          }
+          default: { }
         }
       }
 
@@ -167,11 +175,64 @@ class postgresql::params(
       $datadir              = pick($custom_datadir, "/var/lib/postgresql/${version}/main")
       $confdir              = pick($custom_confdir, "/etc/postgresql/${version}/main")
       $service_status       = "/etc/init.d/${service_name} status | /bin/egrep -q 'Running clusters: .+|online'"
-      $python_package_name  = "python-psycopg2"
+      $python_package_name  = 'python-psycopg2'
+      $plperl_package_name  = "postgresql-plperl-${version}"
     }
 
     default: {
-      fail("Unsupported osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}, module ${module_name} currently only supports osfamily RedHat and Debian")
+
+      $err_msg_prefix = "Module ${module_name} does not provide defaults for osfamily: ${::osfamily} operatingsystem: ${::operatingsystem}; please specify a value for ${module_name}::params::"
+
+      if ($run_initdb != undef) {
+        $needs_initdb = $run_initdb
+      } else {
+        fail("${err_msg_prefix}run_initdb")
+      }
+
+      $firewall_supported = false
+
+      if ($custom_service_name) {
+        $service_name = $custom_service_name
+      } else {
+        fail("${err_msg_prefix}custom_service_name")
+      }
+
+      if ($custom_client_package_name) {
+        $client_package_name = $custom_client_package_name
+      } else {
+        fail("${err_msg_prefix}custom_client_package_name")
+      }
+
+      if ($custom_server_package_name) {
+        $server_package_name = $custom_server_package_name
+      } else {
+        fail("${err_msg_prefix}custom_server_package_name")
+      }
+
+
+      $contrib_package_name = $custom_contrib_package_name
+      $devel_package_name   = $custom_devel_package_name
+      $java_package_name    = $custom_java_package_name
+
+      if ($custom_bindir) {
+        $bindir = $custom_bindir
+      } else {
+        fail("${err_msg_prefix}custom_bindir")
+      }
+
+      if ($custom_datadir) {
+        $datadir = $custom_datadir
+      } else {
+        fail("${err_msg_prefix}custom_datadir")
+      }
+
+      if ($custom_confdir) {
+        $confdir = $custom_confdir
+      } else {
+        fail("${err_msg_prefix}custom_confdir")
+      }
+
+      $service_status = undef
     }
   }
 

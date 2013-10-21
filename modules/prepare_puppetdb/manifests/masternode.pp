@@ -7,7 +7,7 @@ class prepare_puppetdb::masternode{
     path              => "/etc/puppet/puppet.conf",
     section           => "master",
     setting           => "dns_alt_names",
-    value             => "masterdb",
+    value             => "${::hostname}",           #"masterdb",
     key_val_separator => "=",
   }
   ini_setting{"stoteconfig_new":
@@ -18,12 +18,20 @@ class prepare_puppetdb::masternode{
     value   => "true",
     key_val_separator => "=",
   }
+  ini_setting{"stoteconfig_backend_new":
+    ensure  => present,
+    path    => "/etc/puppet/puppet.conf",
+    section => "main",
+    setting => "storeconfigs_backend",
+    value   => "puppetdb",
+    key_val_separator => "=",
+  }
   class { 'puppetdb':
-    database => 'embedded',
+    database => "embedded",
   }
 
   class { 'puppetdb::master::config':
-    puppetdb_server => 'masterdb',
+    puppetdb_server => "${::hostname}",
     puppetdb_port   => 8081,
   }
 }

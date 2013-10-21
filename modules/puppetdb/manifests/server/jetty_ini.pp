@@ -9,7 +9,7 @@
 #   ['listen_port']        - The port on which the puppetdb web server should
 #                            accept HTTP requests (defaults to 8080).
 #   ['ssl_listen_address'] - The address that the web server should bind to
-#                            for HTTPS requests.  (defaults to `$::clientcert`.)
+#                            for HTTPS requests.  (defaults to `$::fqdn`.)
 #   ['ssl_listen_port']    - The port on which the puppetdb web server should
 #                            accept HTTPS requests.
 #   ['disable_ssl']        - If true, disable HTTPS and only serve
@@ -33,7 +33,7 @@
 #
 class puppetdb::server::jetty_ini(
   $listen_address     = $puppetdb::params::listen_address,
-  $listen_port        = $puppetdb::params::listen_port,  
+  $listen_port        = $puppetdb::params::listen_port,
   $ssl_listen_address = $puppetdb::params::ssl_listen_address,
   $ssl_listen_port    = $puppetdb::params::ssl_listen_port,
   $disable_ssl        = $puppetdb::params::disable_ssl,

@@ -5,9 +5,9 @@ class opentsdb_cluster::hadoop {
     ensure  => installed,
     require => Exec["extract_hadoop"],
   }
-  
-  file{"aaa":
-    path  => "${opentsdb_cluster::hadoop_parent_dir}",
+
+  file { "aaa":
+    path    => "${opentsdb_cluster::hadoop_parent_dir}",
     ensure  => directory,
     recurse => false,
     owner   => "${opentsdb_cluster::myuser_name}",
@@ -17,26 +17,29 @@ class opentsdb_cluster::hadoop {
 
   # #download hadoop
   exec { "download_hadoop":
-    command => "wget ${opentsdb_cluster::hadoop_source_link}", #; tar xzf hadoop-${opentsdb_cluster::hadoop_version}.tar.gz",
+    command => "wget ${opentsdb_cluster::hadoop_source_link}", # ; tar xzf hadoop-${opentsdb_cluster::hadoop_version}.tar.gz",
     cwd     => "${opentsdb_cluster::hadoop_parent_dir}",
     path    => "/bin:/usr/bin",
-    creates => "${opentsdb_cluster::hadoop_parent_dir}/hadoop-${opentsdb_cluster::hadoop_version}.tar.gz",#"${opentsdb_cluster::hadoop_working_dir}",
-    
+    creates => "${opentsdb_cluster::hadoop_parent_dir}/hadoop-${opentsdb_cluster::hadoop_version}.tar.gz", 
+    # "${opentsdb_cluster::hadoop_working_dir}",
+
     require => [User["gwdg"], File["aaa"]],
   }
-  exec{"extract_hadoop":
+
+  exec { "extract_hadoop":
     command => "tar xzf hadoop-${opentsdb_cluster::hadoop_version}.tar.gz",
     cwd     => "${opentsdb_cluster::hadoop_parent_dir}",
     path    => $::path,
     creates => "${opentsdb_cluster::hadoop_working_dir}",
     require => Exec["download_hadoop"],
   }
-#  exec{"update":
-#    command => "apt-get update",
-#    path => $::path,
-#    tries => 3,
-#    user => "${opentsdb_cluster::myuser_name}",
-#  }
+
+  #  exec{"update":
+  #    command => "apt-get update",
+  #    path => $::path,
+  #    tries => 3,
+  #    user => "${opentsdb_cluster::myuser_name}",
+  #  }
 
   # # re-own file
   file { "reown_hadoop":
@@ -116,6 +119,7 @@ class opentsdb_cluster::hadoop::copy_file {
     require => File["reown_hadoop"],
   }
 
+  # ## This could be replaced using puppetdb
   file { "slaves":
     path    => "${opentsdb_cluster::hadoop_working_dir}/conf/slaves",
     content => template("opentsdb_cluster/hadoop/conf/slaves.erb"),
@@ -125,6 +129,18 @@ class opentsdb_cluster::hadoop::copy_file {
     require => File["reown_hadoop"],
   }
 
+  #############################################
+  @@file_line { "regionservers${hostname}":
+    path    => "${opentsdb_cluster::hadoop_working_dir}/conf/slaves",
+    ensure  => present,
+    line    => $::hostname,
+    require => File["reown_hadoop"],
+    tag     => "slaves",
+  }
+
+  if $::hostname == $opentsdb_cluster::puppet_hostname {
+    File_line <<| tag == "slaves" |>>
+  }
 }
 
 class opentsdb_cluster::hadoop::format {
@@ -156,7 +172,7 @@ class opentsdb_cluster::hadoop::format {
     require => Exec["format_hadoop"],
   }
 }
- 
+
 class opentsdb_cluster::hadoop::service {
   include opentsdb_cluster::virtual_user::ssh_conn
   include opentsdb_cluster::virtual_user::auth_file
@@ -176,6 +192,6 @@ class opentsdb_cluster::hadoop::service {
     ensure  => running,
     require => [Exec["format_hadoop"], File["hadoop_service"], File["id_rsa"], File["id_rsa.pub"], File["authorized_keys"]],
   }
-   
+
 }
 

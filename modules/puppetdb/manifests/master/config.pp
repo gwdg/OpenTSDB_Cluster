@@ -21,8 +21,15 @@
 #                         and puppetdb_port parameters in the puppetdb configuration file.
 #                         If false, an existing puppetdb configuration file will be used
 #                         to retrieve server and port values.
+#   ['manage_report_processor'] - If true, the module will manage the 'reports' field
+#                         in the puppet.conf file to enable or disable the puppetdb
+#                         report processor.  Defaults to 'false'.
 #   ['strict_validation'] - If true, the module will fail if puppetdb is not reachable,
 #                         otherwise it will preconfigure puppetdb without checking.
+#   ['enable_reports']  - Ignored unless 'manage_report_processor' is `true`, in which
+#                         case this setting will determine whether or not the puppetdb
+#                         report processor is enabled (`true`) or disabled (`false`) in
+#                         the puppet.conf file.
 #   ['puppet_confdir']  - Puppet's config directory; defaults to /etc/puppet
 #   ['puppet_conf']     - Puppet's config file; defaults to /etc/puppet/puppet.conf
 #   ['puppetdb_version']   - The version of the `puppetdb` package that should
@@ -53,12 +60,14 @@
 # TODO: finish porting this to use params
 #
 class puppetdb::master::config(
-  $puppetdb_server          = $::clientcert,
+  $puppetdb_server          = $::fqdn,
   $puppetdb_port            = 8081,
   $manage_routes            = true,
   $manage_storeconfigs      = true,
+  $manage_report_processor  = false,
   $manage_config            = true,
   $strict_validation        = true,
+  $enable_reports           = false,
   $puppet_confdir           = $puppetdb::params::puppet_confdir,
   $puppet_conf              = $puppetdb::params::puppet_conf,
   $puppetdb_version         = $puppetdb::params::puppetdb_version,
@@ -73,20 +82,20 @@ class puppetdb::master::config(
   }
 
   if ($strict_validation) {
-	  # Validate the puppetdb connection.  If we can't connect to puppetdb then we
-	  # *must* not perform the other configuration steps, or else
-	  puppetdb_conn_validator { 'puppetdb_conn':
-	    puppetdb_server => $manage_config ? { true => $puppetdb_server, default => undef },
-	    puppetdb_port   => $manage_config ? { true => $puppetdb_port, default => undef },
-	    timeout         => $puppetdb_startup_timeout,
-	    require         => Package[$terminus_package],
-	  }
+    # Validate the puppetdb connection.  If we can't connect to puppetdb then we
+    # *must* not perform the other configuration steps, or else
+    puppetdb_conn_validator { 'puppetdb_conn':
+      puppetdb_server => $manage_config ? { true => $puppetdb_server, default => undef },
+      puppetdb_port   => $manage_config ? { true => $puppetdb_port, default => undef },
+      timeout         => $puppetdb_startup_timeout,
+      require         => Package[$terminus_package],
+    }
 
-	  # This is a bit of puppet chicanery that allows us to create a
-	  # conditional dependency.  Basically, we're saying that "if the PuppetDB
-	  # service is being managed in this same catalog, it needs to come before
-	  # this validator."
-	  Service<|title == $puppetdb::params::puppetdb_service|> -> Puppetdb_conn_validator['puppetdb_conn']
+    # This is a bit of puppet chicanery that allows us to create a
+    # conditional dependency.  Basically, we're saying that "if the PuppetDB
+    # service is being managed in this same catalog, it needs to come before
+    # this validator."
+    Service<|title == $puppetdb::params::puppetdb_service|> -> Puppetdb_conn_validator['puppetdb_conn']
   }
 
   # Conditionally manage the `routes.yaml` file.  Restart the puppet service
@@ -103,20 +112,31 @@ class puppetdb::master::config(
   # it polls it automatically.
   if ($manage_storeconfigs) {
     class { 'puppetdb::master::storeconfigs':
-	    puppet_conf => $puppet_conf,
+      puppet_conf => $puppet_conf,
       require     => $strict_validation ? { true => Puppetdb_conn_validator['puppetdb_conn'], default => Package[$terminus_package] },
-   }
+    }
+  }
+
+  # Conditionally manage the puppetdb report processor setting in `puppet.conf`.
+  # We don't need to trigger a restart of the puppet master service for this one,
+  # because it polls it automatically.
+  if ($manage_report_processor) {
+    class { 'puppetdb::master::report_processor':
+      puppet_conf => $puppet_conf,
+      enable      => $enable_reports,
+      require     => $strict_validation ? { true => Puppetdb_conn_validator['puppetdb_conn'], default => Package[$terminus_package] },
+    }
   }
 
   if ($manage_config) {
-	  # Manage the `puppetdb.conf` file.  Restart the puppet service if changes
-	  # are made.
-	  class { 'puppetdb::master::puppetdb_conf':
-	    server         => $puppetdb_server,
-	    port           => $puppetdb_port,
-	    puppet_confdir => $puppet_confdir,
-	    require        => $strict_validation ? { true => Puppetdb_conn_validator['puppetdb_conn'], default => Package[$terminus_package] },
-	  }
+    # Manage the `puppetdb.conf` file.  Restart the puppet service if changes
+    # are made.
+    class { 'puppetdb::master::puppetdb_conf':
+      server         => $puppetdb_server,
+      port           => $puppetdb_port,
+      puppet_confdir => $puppet_confdir,
+      require        => $strict_validation ? { true => Puppetdb_conn_validator['puppetdb_conn'], default => Package[$terminus_package] },
+    }
   }
 
   if ($restart_puppet) {

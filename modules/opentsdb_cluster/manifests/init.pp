@@ -30,7 +30,9 @@ class opentsdb_cluster (
   $install_tcollector      = false,
   $setup_user              = false,
   $setup_lzo               = false,
-  $lzo_parent_dir          = "/usr/local") {
+  $setup_puppetdb          = false, 
+  $lzo_parent_dir          = "/usr/local",
+  $database_type           = "embedded" ) {
   $hadoop_working_dir = "${hadoop_parent_dir}/hadoop-${hadoop_version}"
   $hbase_working_dir = "${hbase_parent_dir}/hbase-${hbase_version}"
   $opentsdb_working_dir = "${opentsdb_parent_dir}/opentsdb"
@@ -104,6 +106,11 @@ class opentsdb_cluster (
     include opentsdb_cluster::tcollector
   }
   #######################################################################
+  ############################--- Install puppetdb--#########################
+  if $setup_puppetdb == true {
+    include opentsdb_cluster::mypuppetdb
+  }
+  ###########################################################################
   /*
    * include opentsdb_cluster::hadoop
    * include opentsdb_cluster::hbase
