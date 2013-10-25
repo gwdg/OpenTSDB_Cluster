@@ -21,8 +21,8 @@ cd /
 
 start_hadoop () {
     set +e
-#    su $USER -s /bin/sh -c $HADOOP_BIN/start-all.sh
-	su $USER -s /bin/sh -c $HADOOP_BIN/start-dfs.sh
+    su $USER -s /bin/sh -c $HADOOP_BIN/start-all.sh
+#	su $USER -s /bin/sh -c $HADOOP_BIN/start-dfs.sh
     case "$?" in
       0)
         echo SUCCESS
@@ -43,7 +43,8 @@ start_hadoop () {
 stop_hadoop () {
     set +e
     if [ $RETVAL = 0 ] ; then
-        su $USER -s /bin/sh -c $HADOOP_BIN/stop-dfs.sh
+#        su $USER -s /bin/sh -c $HADOOP_BIN/stop-dfs.sh
+		su $USER -s /bin/sh -c $HADOOP_BIN/stop-all.sh
         RETVAL=$?
         if [ $RETVAL != 0 ] ; then
             echo FAILED
