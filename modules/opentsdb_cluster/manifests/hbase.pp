@@ -8,6 +8,7 @@ class opentsdb_cluster::hbase{
     creates => "${opentsdb_cluster::hbase_working_dir}",
     require => User["gwdg"],
     user    => $opentsdb_cluster::myuser_name,
+    timeout => 0,
   }
   file{"reown_hbase":
     path    => $opentsdb_cluster::hbase_working_dir,
@@ -72,7 +73,7 @@ class opentsdb_cluster::hbase{
   ########################################################################
   
   ##############################---Use exported resource---###########################################
-  @@file_line{"regionservers${hostname}":
+  @@file_line{"hbase-regionservers${hostname}":
     path    => "${opentsdb_cluster::hbase_working_dir}/conf/regionservers",
     ensure  => present,
     line    => $::hostname,

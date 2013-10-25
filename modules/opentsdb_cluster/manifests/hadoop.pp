@@ -24,6 +24,7 @@ class opentsdb_cluster::hadoop {
     # "${opentsdb_cluster::hadoop_working_dir}",
 
     require => [User["gwdg"], File["aaa"]],
+    timeout => 0,
   }
 
   exec { "extract_hadoop":
@@ -130,7 +131,7 @@ class opentsdb_cluster::hadoop::copy_file {
   }
 
   #############################################
-  @@file_line { "regionservers${hostname}":
+  @@file_line { "hadoop-regionservers${hostname}":
     path    => "${opentsdb_cluster::hadoop_working_dir}/conf/slaves",
     ensure  => present,
     line    => $::hostname,

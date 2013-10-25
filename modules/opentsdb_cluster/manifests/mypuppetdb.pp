@@ -1,9 +1,9 @@
 class opentsdb_cluster::mypuppetdb {
   if $::hostname == $opentsdb_cluster::puppet_hostname {
-    file { "/etc/puppet/autosign.conf":
-      ensure  => present,
-      content => '*',
-    }
+#    file { "/etc/puppet/autosign.conf":
+#      ensure  => present,
+#      content => '*',
+#    }
 
     ini_setting { "my_stoteconfigs":
       ensure            => present,
@@ -34,14 +34,6 @@ class opentsdb_cluster::mypuppetdb {
     Host <<| tag == "slave_host" |>>
   }
   ##########
-  @@host{"Host${::hostname}":
-    ip    => $::is_virtual?{
-      /true/    => $::ipaddress_eth1,
-      default    => $::ipaddress_eth0, 
-    },
-    name      => $::hostname,
-    host_aliases  => [$::fqdn],
-    tag     => "slave_host",
-  }
+  
 
 }

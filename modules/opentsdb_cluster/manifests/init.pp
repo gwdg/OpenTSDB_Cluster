@@ -12,7 +12,7 @@ class opentsdb_cluster (
   $hadoop_parent_dir       = "/usr/local",
   $hadoop_version          = "1.2.1",
   $hadoop_version_in_hbase = "1.0.4",
-  $hadoop_source_link      = "http://archive.apache.org/dist/hadoop/core/stable/hadoop-1.2.1.tar.gz",
+  $hadoop_source_link      = "http://archive.apache.org/dist/hadoop/core/hadoop-1.2.1/hadoop-1.2.1.tar.gz",
   $java_home               = "/usr/lib/jvm/java-1.6.0-openjdk-amd64",
   $service_path            = "/etc/init.d",
   $hbase_parent_dir        = "/usr/local",
