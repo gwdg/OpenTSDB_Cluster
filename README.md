@@ -1,6 +1,7 @@
 Installation of OpenTSDB with cluster of hbase machine.
 ==========
 <h1> Preparation </h1>
+
 1.) One master machine in which puppet master, puppetdb installed.
 	Find and edit configuration file /etc/puppet/puppet.conf
 	
@@ -19,6 +20,7 @@ Installation of OpenTSDB with cluster of hbase machine.
 3.) A master machine should be able to connect to other slave machines passwordlessly.
 
 <h1> Install OpenTSDB module </h1>
+
 1.) In the master machine, get the OpenTSDB installation repo via https://github.com/gwdg/OpenTSDB_Cluster
 2.) Copy its manifests and modules to /etc/puppet/
 3.) In file /etc/puppet/manifests/site.pp, use could edit some configuration like this:
