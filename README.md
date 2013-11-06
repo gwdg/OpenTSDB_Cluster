@@ -29,7 +29,10 @@ Installation of OpenTSDB with cluster of hbase machine.
 3.) In file /etc/puppet/manifests/site.pp, use could edit some configuration like this:
 
 
-node "<master_machine>" {
+
+```puppet
+node "master_machine" {
+
   class { 'opentsdb_cluster':
         install_hadoop     => true,        ## install hadoop for master machine
         install_hbase      => true,        ## install hbase for master machine
@@ -39,16 +42,14 @@ node "<master_machine>" {
     	setup_puppetdb => true,
 	database_type => "embedded", # # embedded for testing small environment, using 'postgreps' for production
   # ###Moreover, this master machine with user 'gwdg' coule be able to connect to every slave machines without password.
-
   #    	setup_lzo          => true,        ## enable lzo-compression, if you enable lzo-compression in master machine, you have to set it on every slave machines
-  
-   	
   }
 }
+}
+```
 
-node "<slave_machine>" {
-  
-
+```puppet
+node "slave_machine" {
   class { 'opentsdb_cluster':
        	install_hadoop     => true,       ## install hadoop for slave machine
         install_hbase      => true,      ## install hbase for slave machine
@@ -57,14 +58,14 @@ node "<slave_machine>" {
     #    setup_lzo          => true,      ## if lzo-compression in master machine is enable, this compression have to be enable in
     #    every slave machine.
     setup_user => true, # # set up user name 'gwdg' in group 'goettingen', which allows master machine passwordlessly connecting.
-  
   }
-
 }
-
+```
 
 Moreover, according to your specific environment, you could find and change all parameters in /etc/puppet/module/opentsdb_cluster/manifests/init.pp
 For example:
+
+```puppet
 class opentsdb_cluster (
   $puppet_hostname         = "masterdb",
   $slave_hostname          = "slavedb",			## depricated because of using puppetdb
@@ -100,5 +101,5 @@ class opentsdb_cluster (
   $setup_puppetdb          = false, 
   $lzo_parent_dir          = "/usr/local",
   $database_type           = "embedded" )
-
+```
 
