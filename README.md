@@ -17,13 +17,17 @@ Installation of OpenTSDB with cluster of hbase machine.
 	This is very important configuration. Without this, hadoop and hbase could not work properly. 
 
 2.) A few slave machines connecting to master machine.
+
 3.) A master machine should be able to connect to other slave machines passwordlessly.
 
 <h1> Install OpenTSDB module </h1>
 
 1.) In the master machine, get the OpenTSDB installation repo via https://github.com/gwdg/OpenTSDB_Cluster
+
 2.) Copy its manifests and modules to /etc/puppet/
+
 3.) In file /etc/puppet/manifests/site.pp, use could edit some configuration like this:
+
 
 node "<master_machine>" {
   class { 'opentsdb_cluster':
@@ -31,13 +35,14 @@ node "<master_machine>" {
         install_hbase      => true,        ## install hbase for master machine
         install_opentsdb   => true,        ## install opentsdb
         install_tcollector => true,        ## tcollector
-    setup_user     => true, # # set up dedicated user name 'gwdg' in group 'goettingen'.
-    setup_puppetdb => true,
+    	setup_user     => true, # # set up dedicated user name 'gwdg' in group 'goettingen'.
+    	setup_puppetdb => true,
+	database_type => "embedded", # # embedded for testing small environment, using 'postgreps' for production
   # ###Moreover, this master machine with user 'gwdg' coule be able to connect to every slave machines without password.
 
   #    	setup_lzo          => true,        ## enable lzo-compression, if you enable lzo-compression in master machine, you have to set it on every slave machines
   
-   	database_type => "embedded", # # embedded for testing small environment, using 'postgreps' for production
+   	
   }
 }
 
@@ -45,7 +50,7 @@ node "<slave_machine>" {
   
 
   class { 'opentsdb_cluster':
-       install_hadoop     => true,       ## install hadoop for slave machine
+       	install_hadoop     => true,       ## install hadoop for slave machine
         install_hbase      => true,      ## install hbase for slave machine
     #    install_opentsdb   => false,     ## opentsdb should not be installed in any slave machine
     #    install_tcollector => false,     ## tcollector should not be installed in any slave machine
