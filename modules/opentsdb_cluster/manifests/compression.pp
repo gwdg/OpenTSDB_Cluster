@@ -67,7 +67,7 @@ class opentsdb_cluster::compression {
 
   # #build up
   exec { "build_lzo":
-    command => "ant compile-native jar",
+    command => "ant compile-native tar",
     cwd     => $opentsdb_cluster::lzo_working_dir,
     user    => $opentsdb_cluster::myuser_name,
     creates => "${opentsdb_cluster::lzo_working_dir}/build/hadoop-lzo-0.4.15.jar",
@@ -76,13 +76,13 @@ class opentsdb_cluster::compression {
   }
 
   # # copy file jar and native
-  file { "jar_file_hadoop":
-    path    => "${opentsdb_cluster::hadoop_working_dir}/lib/hadoop-lzo-0.4.15.jar",
-    source  => "${opentsdb_cluster::lzo_working_dir}/build/hadoop-lzo-0.4.15.jar",
-    owner   => $opentsdb_cluster::myuser_name,
-    group   => $opentsdb_cluster::mygroup_name,
-    require => [Exec["build_lzo"]], # File["reown_hadoop"]],
-  }
+#  file { "jar_file_hadoop":
+#    path    => "${opentsdb_cluster::hadoop_working_dir}/lib/hadoop-lzo-0.4.15.jar",
+#    source  => "${opentsdb_cluster::lzo_working_dir}/build/hadoop-lzo-0.4.15.jar",
+#    owner   => $opentsdb_cluster::myuser_name,
+#    group   => $opentsdb_cluster::mygroup_name,
+#    require => [Exec["build_lzo"]], # File["reown_hadoop"]],
+#  }
 
   file { "jar_file_hbase":
     path    => "${opentsdb_cluster::hbase_working_dir}/lib/hadoop-lzo-0.4.15.jar",
@@ -93,6 +93,7 @@ class opentsdb_cluster::compression {
   }
 
   # # copy native
+  /*
   file { "libgplcompression_hadoop":
     path    => "${opentsdb_cluster::hadoop_working_dir}/lib/native",
     recurse => true,
@@ -104,12 +105,12 @@ class opentsdb_cluster::compression {
     #    require => [File["reown_hadoop"], Exec["build_lzo"]],
     require => [Exec["build_lzo"]],
   }
-
+ */
   file { "libgplcompression_hbase":
     path    => "${opentsdb_cluster::hbase_working_dir}/lib/native/",
     recurse => true,
     source  => [
-      "${opentsdb_cluster::lzo_working_dir}/build/native"],
+      "${opentsdb_cluster::lzo_working_dir}/build/hadoop-lzo-0.4.15/lib/native"],
  #     "${opentsdb_cluster::hbase_working_dir}/lib/native/${opentsdb_cluster::os_structure}"],
     owner   => $opentsdb_cluster::myuser_name,
     group   => $opentsdb_cluster::mygroup_name,

@@ -1,39 +1,40 @@
 node "masterdb" {
-#  include prepare_puppetdb::common
-#  include prepare_puppetdb::masternode
-#  include prepare_puppetdb
+  #  include prepare_puppetdb::common
+  #  include prepare_puppetdb::masternode
+  #  include prepare_puppetdb
 
   class { 'opentsdb_cluster':
-        install_hadoop     => true,        ## uncomment to install hadoop for master machine
-        install_hbase      => true,        ## uncomment to install hbase for master machine
-        install_opentsdb   => true,        ## uncomment to install opentsdb
-        install_tcollector => true,        ## uncomment to install tcollector
-    setup_user     => true, # # set up user name 'gwdg' in group 'goettingen'.
-    setup_puppetdb => true,
-  # ###Moreover, this master machine with user 'gwdg' coule be able to connect to every slave machines without password.
+    install_hadoop     => true, # # uncomment to install hadoop for master machine
+    install_hbase      => true, # # uncomment to install hbase for master machine
+    install_opentsdb   => true, # # uncomment to install opentsdb
+    install_tcollector => true, # # uncomment to install tcollector
+    setup_user         => true, # # set up user name 'gwdg' in group 'goettingen'.
+    setup_puppetdb     => true,
+    # ###Moreover, this master machine with user 'gwdg' coule be able to connect to every slave machines without password.
 
-  #    setup_lzo          => true,        ## uncomment to enable lzo-compression
-  #    compression        => 'NONE',
-   database_type => "embedded", # # embedded for testing small environment, using 'postgreps' for production
+    setup_lzo          => true, # # uncomment to enable lzo-compression
+    compression        => 'LZO',
+    database_type      => "embedded", # # embedded for testing small environment, using 'postgreps' for production
   }
 
 }
 
 node "slavedb" {
-#  include prepare_puppetdb::common
-#  include prepare_puppetdb::slavenode
-#  include prepare_puppetdb
+  #  include prepare_puppetdb::common
+  #  include prepare_puppetdb::slavenode
+  #  include prepare_puppetdb
 
   #  File_line <<| tag == "gwdg" |>>
 
   class { 'opentsdb_cluster':
-       install_hadoop     => true,       ## uncomment to install hadoop for slave machine
-        install_hbase      => true,      ## uncomment to install hbase for slave machine
+    install_hadoop => true, # # uncomment to install hadoop for slave machine
+    install_hbase  => true, # # uncomment to install hbase for slave machine
     #    install_opentsdb   => false,     ## opentsdb should not be installed in any slave machine
     #    install_tcollector => false,     ## tcollector should not be installed in any slave machine
-    #    setup_lzo          => true,      ## if lzo-compression in master machine is enable, this compression have to be enable in
+    setup_lzo      => true, # # if lzo-compression in master machine is enable, this compression have to be enable in
     #    every slave machine.
-    setup_user => true, # # set up user name 'gwdg' in group 'goettingen', which allows master machine passwordlessly connecting.
+    setup_user     => true, # # set up user name 'gwdg' in group 'goettingen', which allows master machine passwordlessly
+                            # connecting.
   #    compression        => 'NONE',
   }
 
